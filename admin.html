@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex"/>
+<title>Panel · ¡Me lo merezco!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{--plum:#3a1534;--rose:#ff5c95;--rose-deep:#e23b78;--blush:#ffe3ec;--gold:#ffd166;--cream:#fff7f2;--ink:#2b0f28;--muted:#7d6378;--line:rgba(58,21,52,.12);--display:'Bricolage Grotesque',sans-serif;--body:'DM Sans',sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--body);background:var(--cream);color:var(--ink);font-size:14.5px}
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  input,select,textarea{font:inherit;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;height:42px;background:#fff;width:100%}
+  textarea{height:90px;padding:10px 12px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--rose);border-color:transparent}
+  label{display:grid;gap:5px;font-weight:700;font-size:13px}
+  .serif{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--rose-deep)}
+  header{background:var(--plum);color:#fff;padding:0 22px;height:62px;display:flex;align-items:center;gap:22px;position:sticky;top:0;z-index:5}
+  header h1{font-family:var(--display);font-size:19px}
+  header h1 .serif{color:var(--rose)}
+  nav.tabs{display:flex;gap:4px}
+  nav.tabs button{padding:8px 14px;border-radius:9px;font-weight:700;opacity:.75}
+  nav.tabs button.on{background:rgba(255,255,255,.14);opacity:1}
+  header .me{margin-left:auto;font-size:13px;opacity:.8;display:flex;gap:12px;align-items:center}
+  main{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
+  .btn{height:42px;padding:0 18px;border-radius:999px;font-weight:700;display:inline-flex;align-items:center;gap:6px;justify-content:center;white-space:nowrap}
+  .btn-rose{background:var(--rose);color:#fff}.btn-rose:hover{background:var(--rose-deep)}
+  .btn-dark{background:var(--plum);color:#fff}
+  .btn-line{border:1.5px solid var(--line);background:#fff}
+  .btn-sm{height:34px;padding:0 12px;font-size:13px}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .danger{color:#c0244e}
+  .box{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .between{justify-content:space-between}
+  h2{font-family:var(--display);font-size:26px;letter-spacing:-.02em}
+  h3{font-family:var(--display);font-size:18px;margin-bottom:12px}
+  .muted{color:var(--muted)}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  tr.click{cursor:pointer}tr.click:hover td{background:#fff5f8}
+  .th{width:48px;height:60px;border-radius:8px;object-fit:cover;background:var(--blush)}
+  .tag{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--blush)}
+  .tag.ok{background:#e4f8ec;color:#145c34}.tag.off{background:#eee;color:#666}.tag.warn{background:#fff3d6;color:#6b4b00}.tag.bad{background:#ffe3ea;color:#8a1538}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .edit{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;margin-top:18px}
+  .checks{display:flex;gap:18px;flex-wrap:wrap}
+  .checks label{display:flex;align-items:center;gap:7px;font-weight:600}
+  .checks input{width:18px;height:18px}
+  .media{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+  .m{position:relative;border-radius:12px;overflow:hidden;background:var(--blush);aspect-ratio:3/4}
+  .m img,.m video{width:100%;height:100%;object-fit:cover}
+  .m .bar{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(43,15,40,.7)}
+  .m .bar button{color:#fff;padding:6px 8px;font-size:13px}
+  .m .k{position:absolute;top:6px;left:6px;font-size:11px;font-weight:700;background:rgba(0,0,0,.55);color:#fff;padding:2px 7px;border-radius:6px}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;margin-bottom:12px}
+  .drop.hot{border-color:var(--rose);background:#fff5f8}
+  .vrow{display:grid;grid-template-columns:1fr 1fr 90px 36px;gap:8px;margin-bottom:8px}
+  .vrow input{height:38px}
+  .presets{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  .login{max-width:380px;margin:12vh auto;display:grid;gap:14px}
+  .msg{min-height:20px;font-weight:600;font-size:13.5px}
+  .msg.err{color:#c0244e}.msg.ok{color:#145c34}
+  .progress{height:6px;background:var(--blush);border-radius:4px;overflow:hidden;margin-top:8px}
+  .progress i{display:block;height:100%;background:var(--rose);width:0;transition:width .2s}
+  .order{border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:10px}
+  .order summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:110px 1fr 120px 120px 150px;gap:10px;align-items:center}
+  .order summary::-webkit-details-marker{display:none}
+  .order .det{padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  .hide{display:none!important}
+  @media(max-width:860px){.edit,.grid2,.grid3,.order .det{grid-template-columns:1fr}.order summary{grid-template-columns:1fr 1fr}header{flex-wrap:wrap;height:auto;padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>¡Me lo <span class="serif">merezco!</span> · Panel</h1>
+  <nav class="tabs hide" id="tabs">
+    <button data-tab="prendas" class="on">Prendas</button>
+    <button data-tab="pedidos">Pedidos</button>
+    <button data-tab="categorias">Categorías</button>
+  </nav>
+  <div class="me hide" id="me"><span id="meEmail"></span><a href="/" target="_blank" style="text-decoration:underline">Ver tienda</a><button id="logout" style="text-decoration:underline">Salir</button></div>
+</header>
+
+<main>
+  <!-- Login -->
+  <section id="vLogin" class="hide">
+    <form class="login box" id="loginForm">
+      <h2>Entrar al <span class="serif">panel</span></h2>
+      <label>Correo<input name="email" type="email" autocomplete="username" required/></label>
+      <label>Contraseña<input name="password" type="password" autocomplete="current-password" required/></label>
+      <button class="btn btn-rose">Entrar</button>
+      <div class="msg err" id="loginMsg"></div>
+    </form>
+  </section>
+
+  <section id="vSetup" class="hide box" style="max-width:640px;margin:8vh auto">
+    <h2>Falta conectar la <span class="serif">base de datos</span></h2>
+    <p class="muted" style="margin-top:10px;line-height:1.6">Agrega en Vercel las variables <b>MLM_SUPABASE_URL</b> y <b>MLM_SUPABASE_ANON_KEY</b> (ver README) y vuelve a desplegar.</p>
+  </section>
+
+  <section id="vNoAdmin" class="hide box" style="max-width:640px;margin:8vh auto">
+    <h2>Tu usuario no es <span class="serif">administrador</span></h2>
+    <p class="muted" style="margin-top:10px;line-height:1.6">Corre <b>sql/02_admin.sql</b> en Supabase con tu correo para darte acceso, y vuelve a entrar.</p>
+  </section>
+
+  <!-- Prendas -->
+  <section id="vPrendas" class="hide">
+    <div id="listWrap">
+      <div class="row between" style="margin-bottom:16px"><h2>Prendas</h2><div class="row"><input id="q" placeholder="Buscar…" style="width:220px"/><button class="btn btn-rose" id="newP">+ Nueva prenda</button></div></div>
+      <div class="box" style="padding:6px 14px"><table><thead><tr><th></th><th>Prenda</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th></tr></thead><tbody id="pList"></tbody></table></div>
+    </div>
+
+    <div id="editWrap" class="hide">
+      <div class="row between"><button class="btn btn-line btn-sm" id="backList">← Volver</button><div class="row"><button class="btn btn-line btn-sm danger" id="delP">Eliminar prenda</button><button class="btn btn-rose" id="saveP">Guardar cambios</button></div></div>
+      <div class="msg" id="pMsg" style="margin-top:8px"></div>
+      <div class="edit">
+        <div style="display:grid;gap:14px;align-content:start">
+          <div class="box" style="display:grid;gap:12px">
+            <h3>Datos de la prenda</h3>
+            <label>Nombre<input id="fName" placeholder="Ej: Palazzo lino beige"/></label>
+            <div class="grid2"><label>Categoría<select id="fCat"></select></label><label>Guía de tallas<select id="fGuide"><option value="superior">Tops, bodys, vestidos</option><option value="inferior">Jeans, palazzos, faldas</option><option value="unica">Talla única</option></select></label></div>
+            <div class="grid2"><label>Precio (CLP)<input id="fPrice" type="number" min="0" step="10" placeholder="19990"/></label><label>Precio antes (opcional, para oferta)<input id="fCompare" type="number" min="0" step="10"/></label></div>
+            <label>Descripción<textarea id="fDesc" placeholder="Tela, calce, cómo combinarla…"></textarea></label>
+            <label>Medidas de la prenda (opcional)<textarea id="fMeasures" style="height:70px" placeholder="Ej: Largo 102 cm · Tiro 30 cm · Modelo usa talla S"></textarea></label>
+            <div class="checks"><label><input type="checkbox" id="fActive" checked/> Visible en la tienda</label><label><input type="checkbox" id="fNew" checked/> Etiqueta "Nuevo"</label><label><input type="checkbox" id="fFeat"/> Lo más vendido</label></div>
+            <label>Orden (menor aparece primero)<input id="fSort" type="number" value="0"/></label>
+          </div>
+        </div>
+        <div style="display:grid;gap:14px;align-content:start">
+          <div class="box">
+            <h3>Fotos y videos</h3>
+            <div id="mediaLocked" class="muted">Guarda la prenda primero para poder subir fotos y videos.</div>
+            <div id="mediaZone" class="hide">
+              <div class="drop" id="drop">📷 🎬 Arrastra aquí fotos o videos, o <u>haz clic para elegir</u><br/><small>Las fotos se optimizan solas. Videos: MP4 corto, máx. 50 MB.</small></div>
+              <input type="file" id="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple class="hide"/>
+              <div class="progress hide" id="prog"><i></i></div>
+              <div class="media" id="mList" style="margin-top:12px"></div>
+              <p class="muted" style="font-size:12.5px;margin-top:8px">La primera foto es la portada. Usa ◀ ▶ para ordenar.</p>
+            </div>
+          </div>
+          <div class="box">
+            <h3>Tallas y stock</h3>
+            <div class="presets"><button class="btn btn-line btn-sm" data-preset="XS,S,M,L,XL">XS–XL</button><button class="btn btn-line btn-sm" data-preset="S,M,L,XL,XXL">S–XXL</button><button class="btn btn-line btn-sm" data-preset="36,38,40,42,44,46">36–46</button><button class="btn btn-line btn-sm" data-preset="Única">Única</button></div>
+            <div class="vrow muted" style="font-size:12px;font-weight:700"><span>Talla</span><span>Color (opcional)</span><span>Stock</span><span></span></div>
+            <div id="vList"></div>
+            <button class="btn btn-line btn-sm" id="addV">+ Agregar talla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pedidos -->
+  <section id="vPedidos" class="hide">
+    <div class="row between" style="margin-bottom:16px"><h2>Pedidos</h2>
+      <select id="oFilter" style="width:220px"><option value="">Todos</option><option value="paid" selected>Pagados (por preparar)</option><option value="preparing">Preparando</option><option value="shipped">Enviados</option><option value="delivered">Entregados</option><option value="pending">Pendientes de pago</option><option value="rejected">Rechazados</option><option value="cancelled">Anulados</option></select>
+    </div>
+    <div id="oList"></div>
+  </section>
+
+  <!-- Categorías -->
+  <section id="vCategorias" class="hide">
+    <div class="row between" style="margin-bottom:16px"><h2>Categorías</h2><button class="btn btn-rose" id="newC">+ Nueva categoría</button></div>
+    <div class="box" style="padding:6px 14px"><table><thead><tr><th>Imagen</th><th>Nombre</th><th>Slug</th><th>Orden</th><th>Visible</th><th></th></tr></thead><tbody id="cList"></tbody></table></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(async () => {
+  'use strict';
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clp = n => '$' + Math.round(n || 0).toLocaleString('es-CL');
+  const slugify = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+  const show = (id, on) => $(id).classList.toggle('hide', !on);
+  let tT; const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tT); tT = setTimeout(() => t.classList.remove('show'), 2600); };
+  const BUCKET = 'productos';
+  const STATUS = { pending: ['Pendiente de pago', 'warn'], paid: ['Pagado', 'ok'], preparing: ['Preparando', 'warn'], shipped: ['Enviado', 'ok'], delivered: ['Entregado', 'ok'], rejected: ['Rechazado', 'bad'], cancelled: ['Anulado', 'off'] };
+
+  let cfg = {};
+  try { cfg = await (await fetch('/api/config')).json(); } catch (e) {}
+  if (!cfg.supabaseUrl || !cfg.supabaseKey) { show('#vSetup', true); return; }
+  const sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+
+  const S = { cats: [], prods: [], cur: null, media: [], vars: [], removedVars: [] };
+
+  // ── Sesión ──
+  async function boot() {
+    const { data: { session } } = await sb.auth.getSession();
+    ['#vLogin', '#vNoAdmin', '#vPrendas', '#vPedidos', '#vCategorias', '#tabs', '#me'].forEach(x => show(x, false));
+    if (!session) { show('#vLogin', true); return; }
+    $('#meEmail').textContent = session.user.email; show('#me', true);
+    const { data: adm } = await sb.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle();
+    if (!adm) { show('#vNoAdmin', true); return; }
+    show('#tabs', true);
+    await loadCats();
+    tab('prendas');
+  }
+  $('#loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(e.target));
+    $('#loginMsg').textContent = '';
+    const { error } = await sb.auth.signInWithPassword({ email: fd.email, password: fd.password });
+    if (error) { $('#loginMsg').textContent = 'Correo o contraseña incorrectos.'; return; }
+    boot();
+  });
+  $('#logout').onclick = async () => { await sb.auth.signOut(); boot(); };
+
+  function tab(name) {
+    $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+    show('#vPrendas', name === 'prendas'); show('#vPedidos', name === 'pedidos'); show('#vCategorias', name === 'categorias');
+    if (name === 'prendas') { showList(); loadProds(); }
+    if (name === 'pedidos') loadOrders();
+    if (name === 'categorias') renderCats();
+  }
+  $('#tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) tab(b.dataset.tab); };
+
+  // ── Categorías ──
+  async function loadCats() {
+    const { data } = await sb.from('categories').select('*').order('sort_order');
+    S.cats = data || [];
+    $('#fCat').innerHTML = '<option value="">— Sin categoría —</option>' + S.cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  }
+  function renderCats() {
+    $('#cList').innerHTML = S.cats.map(c => `<tr data-cid="${c.id}">
+      <td><label style="cursor:pointer">${c.image_url ? `<img class="th" style="border-radius:50%;width:52px;height:52px" src="${esc(c.image_url)}"/>` : '<span class="tag">Subir</span>'}<input type="file" accept="image/*" class="hide" data-cimg/></label></td>
+      <td><input value="${esc(c.name)}" data-cf="name"/></td><td><input value="${esc(c.slug)}" data-cf="slug"/></td>
+      <td><input type="number" value="${c.sort_order || 0}" data-cf="sort_order" style="width:80px"/></td>
+      <td><input type="checkbox" ${c.active ? 'checked' : ''} data-cf="active" style="width:18px;height:18px"/></td>
+      <td><button class="btn btn-line btn-sm" data-csave>Guardar</button> <button class="btn btn-sm danger" data-cdel>Eliminar</button></td></tr>`).join('') || '<tr><td colspan="6" class="muted">Sin categorías.</td></tr>';
+  }
+  $('#cList').addEventListener('click', async e => {
+    const tr = e.target.closest('tr[data-cid]'); if (!tr) return;
+    const id = tr.dataset.cid;
+    if (e.target.closest('[data-csave]')) {
+      const patch = {}; $$('[data-cf]', tr).forEach(i => { patch[i.dataset.cf] = i.type === 'checkbox' ? i.checked : i.type === 'number' ? +i.value : i.value.trim(); });
+      patch.slug = slugify(patch.slug || patch.name);
+      const { error } = await sb.from('categories').update(patch).eq('id', id);
+      if (error) return toast('Error: ' + error.message);
+      toast('Categoría guardada'); await loadCats(); renderCats();
+    }
+    if (e.target.closest('[data-cdel]')) {
+      if (!confirm('¿Eliminar esta categoría? Las prendas quedarán sin categoría.')) return;
+      const { error } = await sb.from('categories').delete().eq('id', id);
+      if (error) return toast('Error: ' + error.message);
+      await loadCats(); renderCats();
+    }
+  });
+  $('#cList').addEventListener('change', async e => {
+    if (!e.target.matches('[data-cimg]')) return;
+    const id = e.target.closest('tr').dataset.cid, f = e.target.files[0]; if (!f) return;
+    toast('Subiendo imagen…');
+    const blob = await shrink(f, 700);
+    const path = 'categorias/' + id + '-' + Date.now() + '.jpg';
+    const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+    if (error) return toast('Error: ' + error.message);
+    const url = sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    await sb.from('categories').update({ image_url: url }).eq('id', id);
+    await loadCats(); renderCats(); toast('Imagen actualizada');
+  });
+  $('#newC').onclick = async () => {
+    const name = prompt('Nombre de la categoría'); if (!name) return;
+    const { error } = await sb.from('categories').insert({ name, slug: slugify(name), sort_order: S.cats.length + 1 });
+    if (error) return toast('Error: ' + error.message);
+    await loadCats(); renderCats();
+  };
+
+  // ── Prendas ──
+  async function loadProds() {
+    const { data, error } = await sb.from('products').select('*, category:categories(name), product_media(url,kind,sort_order), product_variants(stock)').order('sort_order').order('created_at', { ascending: false });
+    if (error) return toast('Error: ' + error.message);
+    S.prods = data || []; renderProds();
+  }
+  function renderProds() {
+    const q = $('#q').value.trim().toLowerCase();
+    const list = S.prods.filter(p => !q || p.name.toLowerCase().includes(q));
+    $('#pList').innerHTML = list.map(p => {
+      const img = (p.product_media || []).filter(m => m.kind === 'image').sort((a, b) => a.sort_order - b.sort_order)[0];
+      const st = (p.product_variants || []).reduce((a, v) => a + v.stock, 0);
+      return `<tr class="click" data-pid="${p.id}"><td>${img ? `<img class="th" src="${esc(img.url)}"/>` : '<div class="th"></div>'}</td>
+        <td><b>${esc(p.name)}</b>${p.is_featured ? ' <span class="tag">★ Más vendido</span>' : ''}</td><td>${esc(p.category ? p.category.name : '—')}</td>
+        <td>${clp(p.price)}</td><td>${st ? st : '<span class="tag bad">Agotado</span>'}</td>
+        <td>${p.active ? '<span class="tag ok">Visible</span>' : '<span class="tag off">Oculta</span>'}</td></tr>`;
+    }).join('') || '<tr><td colspan="6" class="muted" style="padding:24px">Aún no hay prendas. ¡Crea la primera con “+ Nueva prenda”!</td></tr>';
+  }
+  $('#q').oninput = renderProds;
+  $('#pList').onclick = e => { const tr = e.target.closest('[data-pid]'); if (tr) editProd(tr.dataset.pid); };
+  $('#newP').onclick = () => editProd(null);
+  $('#backList').onclick = () => { showList(); loadProds(); };
+  function showList() { show('#listWrap', true); show('#editWrap', false); }
+
+  async function editProd(id) {
+    S.removedVars = []; $('#pMsg').textContent = '';
+    if (id) {
+      const { data, error } = await sb.from('products').select('*, product_media(*), product_variants(*)').eq('id', id).single();
+      if (error) return toast('Error: ' + error.message);
+      S.cur = data;
+      S.media = (data.product_media || []).sort((a, b) => a.sort_order - b.sort_order);
+      S.vars = (data.product_variants || []).sort((a, b) => a.sort_order - b.sort_order);
+    } else {
+      S.cur = { active: true, is_new: true, is_featured: false, size_guide: 'superior', sort_order: 0 }; S.media = []; S.vars = [];
+    }
+    const p = S.cur;
+    $('#fName').value = p.name || ''; $('#fCat').value = p.category_id || ''; $('#fGuide').value = p.size_guide || 'superior';
+    $('#fPrice').value = p.price ?? ''; $('#fCompare').value = p.compare_price ?? ''; $('#fDesc').value = p.description || ''; $('#fMeasures').value = p.measures || '';
+    $('#fActive').checked = !!p.active; $('#fNew').checked = !!p.is_new; $('#fFeat').checked = !!p.is_featured; $('#fSort').value = p.sort_order || 0;
+    show('#delP', !!p.id);
+    show('#mediaLocked', !p.id); show('#mediaZone', !!p.id);
+    renderMedia(); renderVars();
+    show('#listWrap', false); show('#editWrap', true); scrollTo(0, 0);
+  }
+
+  async function saveProd() {
+    const msg = $('#pMsg'); msg.className = 'msg'; msg.textContent = '';
+    const name = $('#fName').value.trim(), price = parseInt($('#fPrice').value, 10);
+    if (!name) { msg.className = 'msg err'; msg.textContent = 'Ponle un nombre a la prenda.'; return; }
+    if (!(price > 0)) { msg.className = 'msg err'; msg.textContent = 'Ingresa un precio válido.'; return; }
+    readVars();
+    const tallas = S.vars.map(v => (v.talla + '|' + (v.color || '')).toLowerCase());
+    if (S.vars.some(v => !v.talla)) { msg.className = 'msg err'; msg.textContent = 'Hay una talla sin nombre.'; return; }
+    if (new Set(tallas).size !== tallas.length) { msg.className = 'msg err'; msg.textContent = 'Hay tallas repetidas (misma talla y color).'; return; }
+    const cmp = parseInt($('#fCompare').value, 10);
+    const row = {
+      name, price, compare_price: cmp > 0 ? cmp : null,
+      category_id: $('#fCat').value || null, size_guide: $('#fGuide').value,
+      description: $('#fDesc').value.trim() || null, measures: $('#fMeasures').value.trim() || null,
+      active: $('#fActive').checked, is_new: $('#fNew').checked, is_featured: $('#fFeat').checked, sort_order: parseInt($('#fSort').value, 10) || 0,
+    };
+    $('#saveP').disabled = true;
+    try {
+      let id = S.cur.id;
+      if (id) {
+        const { error } = await sb.from('products').update(row).eq('id', id); if (error) throw error;
+      } else {
+        row.slug = slugify(name) + '-' + Math.random().toString(36).slice(2, 6);
+        const { data, error } = await sb.from('products').insert(row).select().single(); if (error) throw error;
+        id = data.id; S.cur = data;
+      }
+      if (S.removedVars.length) { const { error } = await sb.from('product_variants').delete().in('id', S.removedVars); if (error) throw error; S.removedVars = []; }
+      const ups = S.vars.map((v, i) => ({ ...(v.id ? { id: v.id } : {}), product_id: id, talla: v.talla, color: v.color || null, stock: Math.max(0, parseInt(v.stock, 10) || 0), sort_order: i }));
+      const news = ups.filter(v => !v.id), olds = ups.filter(v => v.id);
+      if (olds.length) { const { error } = await sb.from('product_variants').upsert(olds); if (error) throw error; }
+      if (news.length) { const { error } = await sb.from('product_variants').insert(news); if (error) throw error; }
+      msg.className = 'msg ok'; msg.textContent = '✓ Guardado';
+      await editProd(id);
+      msg.className = 'msg ok'; msg.textContent = '✓ Guardado' + (S.media.length ? '' : ' — ahora sube fotos o videos.');
+    } catch (e) { msg.className = 'msg err'; msg.textContent = 'Error: ' + (e.message || e); }
+    $('#saveP').disabled = false;
+  }
+  $('#saveP').onclick = saveProd;
+  $('#delP').onclick = async () => {
+    if (!confirm('¿Eliminar esta prenda con sus fotos, videos y tallas? No se puede deshacer.')) return;
+    const paths = S.media.map(m => m.path).filter(Boolean);
+    if (paths.length) await sb.storage.from(BUCKET).remove(paths);
+    const { error } = await sb.from('products').delete().eq('id', S.cur.id);
+    if (error) return toast('Error: ' + error.message);
+    toast('Prenda eliminada'); showList(); loadProds();
+  };
+
+  // Tallas
+  function renderVars() {
+    $('#vList').innerHTML = S.vars.map((v, i) => `<div class="vrow" data-vi="${i}"><input value="${esc(v.talla)}" data-vf="talla" placeholder="M"/><input value="${esc(v.color || '')}" data-vf="color" placeholder="—"/><input type="number" min="0" value="${v.stock ?? 0}" data-vf="stock"/><button class="btn btn-sm danger" data-vdel title="Quitar">✕</button></div>`).join('') || '<p class="muted" style="margin-bottom:8px">Agrega las tallas con un atajo o una por una.</p>';
+  }
+  function readVars() { $$('#vList .vrow').forEach(r => { const v = S.vars[+r.dataset.vi]; $$('[data-vf]', r).forEach(i => { v[i.dataset.vf] = i.value.trim(); }); }); }
+  $('#vList').onclick = e => { const b = e.target.closest('[data-vdel]'); if (!b) return; readVars(); const i = +b.closest('.vrow').dataset.vi; const v = S.vars.splice(i, 1)[0]; if (v.id) S.removedVars.push(v.id); renderVars(); };
+  $('#addV').onclick = () => { readVars(); S.vars.push({ talla: '', color: '', stock: 0 }); renderVars(); };
+  $$('[data-preset]').forEach(b => b.onclick = () => { readVars(); b.dataset.preset.split(',').forEach(t => { if (!S.vars.some(v => v.talla === t && !v.color)) S.vars.push({ talla: t, color: '', stock: 0 }); }); renderVars(); });
+
+  // Fotos y videos
+  function renderMedia() {
+    $('#mList').innerHTML = S.media.map((m, i) => `<div class="m" data-mi="${i}">${m.kind === 'video' ? `<video src="${esc(m.url)}#t=0.1" muted preload="metadata"></video><span class="k">▶ Video</span>` : `<img src="${esc(m.url)}"/>`}${i === 0 ? '<span class="k" style="left:auto;right:6px;background:var(--rose)">Portada</span>' : ''}
+      <div class="bar"><button data-mv="-1" title="Mover a la izquierda">◀</button><button data-mdel title="Eliminar">🗑</button><button data-mv="1" title="Mover a la derecha">▶</button></div></div>`).join('');
+  }
+  $('#mList').onclick = async e => {
+    const card = e.target.closest('[data-mi]'); if (!card) return; const i = +card.dataset.mi;
+    if (e.target.closest('[data-mdel]')) {
+      if (!confirm('¿Eliminar este archivo?')) return;
+      const m = S.media[i];
+      const { error } = await sb.from('product_media').delete().eq('id', m.id); if (error) return toast('Error: ' + error.message);
+      if (m.path) await sb.storage.from(BUCKET).remove([m.path]);
+      S.media.splice(i, 1); await reorder(); renderMedia();
+    }
+    const mv = e.target.closest('[data-mv]');
+    if (mv) { const j = i + +mv.dataset.mv; if (j < 0 || j >= S.media.length) return; [S.media[i], S.media[j]] = [S.media[j], S.media[i]]; renderMedia(); await reorder(); }
+  };
+  async function reorder() { await Promise.all(S.media.map((m, i) => m.sort_order === i ? null : sb.from('product_media').update({ sort_order: (m.sort_order = i) }).eq('id', m.id))); }
+
+  const drop = $('#drop');
+  drop.onclick = () => $('#file').click();
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add('hot'); };
+  drop.ondragleave = () => drop.classList.remove('hot');
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove('hot'); upload([...e.dataTransfer.files]); };
+  $('#file').onchange = e => { upload([...e.target.files]); e.target.value = ''; };
+
+  async function upload(files) {
+    if (!S.cur || !S.cur.id) return;
+    const bar = $('#prog'); show('#prog', true);
+    let done = 0;
+    for (const f of files) {
+      const isVid = f.type.startsWith('video/'), isImg = f.type.startsWith('image/');
+      if (!isVid && !isImg) { toast(f.name + ': formato no soportado'); continue; }
+      if (isVid && f.size > 50 * 1024 * 1024) { toast(f.name + ' pesa más de 50 MB. Acórtalo o comprímelo.'); continue; }
+      try {
+        const body = isImg ? await shrink(f, 1600) : f;
+        const ext = isImg ? 'jpg' : (f.name.split('.').pop() || 'mp4').toLowerCase();
+        const path = S.cur.id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 7) + '.' + ext;
+        const { error } = await sb.storage.from(BUCKET).upload(path, body, { contentType: isImg ? 'image/jpeg' : f.type, cacheControl: '31536000' });
+        if (error) throw error;
+        const url = sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+        const { data, error: e2 } = await sb.from('product_media').insert({ product_id: S.cur.id, kind: isImg ? 'image' : 'video', url, path, sort_order: S.media.length }).select().single();
+        if (e2) throw e2;
+        S.media.push(data); renderMedia();
+      } catch (e) { toast('Error subiendo ' + f.name + ': ' + (e.message || e)); }
+      done++; $('i', bar).style.width = (done / files.length * 100) + '%';
+    }
+    setTimeout(() => { show('#prog', false); $('i', bar).style.width = 0; }, 600);
+    toast('Archivos subidos ✓');
+  }
+
+  // Reduce fotos grandes (ahorra espacio y carga más rápido)
+  function shrink(file, max) {
+    return new Promise((res, rej) => {
+      const img = new Image(); const u = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(u); c.toBlob(b => b ? res(b) : rej(new Error('No se pudo procesar la imagen')), 'image/jpeg', 0.86);
+      };
+      img.onerror = () => rej(new Error('Imagen no válida (prueba JPG o PNG)'));
+      img.src = u;
+    });
+  }
+
+  // ── Pedidos ──
+  async function loadOrders() {
+    let q = sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).limit(200);
+    const f = $('#oFilter').value; if (f) q = q.eq('status', f);
+    const { data, error } = await q;
+    if (error) return toast('Error: ' + error.message);
+    $('#oList').innerHTML = (data || []).map(o => {
+      const [lbl, cls] = STATUS[o.status] || [o.status, ''];
+      const d = new Date(o.created_at).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' });
+      return `<details class="order"><summary><b>MLM-${o.order_number}</b><span>${esc(o.customer_name)}<br/><small class="muted">${d}</small></span><b>${clp(o.total)}</b><span class="tag ${cls}">${lbl}</span>
+        <select data-oid="${o.id}" onclick="event.stopPropagation()">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></summary>
+        <div class="det"><div><h3>Prendas</h3>${(o.order_items || []).map(i => `<div>${i.qty} × ${esc(i.product_name)} · talla ${esc(i.talla)}${i.color ? ' · ' + esc(i.color) : ''} — ${clp(i.subtotal)}</div>`).join('')}
+          <div class="muted" style="margin-top:8px">Subtotal ${clp(o.subtotal)} · Despacho ${o.delivery_type === 'retiro' ? 'retiro' : (o.shipping_cost ? clp(o.shipping_cost) : 'por pagar')}${o.payment_media ? ' · Pagó con ' + esc(o.payment_media) : ''}</div></div>
+          <div><h3>Clienta</h3><div>${esc(o.email)}</div><div>${esc(o.phone || '')} ${o.rut ? '· RUT ' + esc(o.rut) : ''}</div>
+          <div style="margin-top:6px">${o.delivery_type === 'retiro' ? '🛍️ Retiro' : '🚚 ' + esc([o.address, o.comuna, o.region].filter(Boolean).join(', '))}</div>
+          ${o.notes ? `<div class="muted" style="margin-top:6px">Nota: ${esc(o.notes)}</div>` : ''}
+          ${o.phone ? `<a class="btn btn-line btn-sm" style="margin-top:10px" target="_blank" href="https://wa.me/${String(o.phone).replace(/\D/g, '')}">Escribir por WhatsApp</a>` : ''}</div></div></details>`;
+    }).join('') || '<div class="box muted">No hay pedidos con este filtro.</div>';
+  }
+  $('#oFilter').onchange = loadOrders;
+  $('#oList').addEventListener('change', async e => {
+    const s = e.target.closest('[data-oid]'); if (!s) return;
+    const { error } = await sb.from('orders').update({ status: s.value }).eq('id', s.dataset.oid);
+    if (error) return toast('Error: ' + error.message);
+    toast('Estado actualizado'); loadOrders();
+  });
+
+  sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT') boot(); });
+  boot();
+})();
+</script>
+</body>
+</html>
